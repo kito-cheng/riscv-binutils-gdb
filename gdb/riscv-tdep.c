@@ -1125,6 +1125,22 @@ static const struct frame_unwind riscv_frame_unwind =
   /*.prev_arch     =*/ NULL,
 };
 
+static int
+gdb_print_insn_riscv (bfd_vma memaddr, struct disassemble_info *info)
+{
+  struct obj_section *s;
+  if (!info->section)
+    {
+      /* Set info->section for gdb.  Not sure if it have to be updated for
+	 each memaddr. */
+      s = find_pc_section (memaddr);
+      if (s && s->the_bfd_section)
+	info->section = s->the_bfd_section;
+    }
+
+  return print_insn_riscv (memaddr, info);
+}
+
 static struct gdbarch *
 riscv_gdbarch_init (struct gdbarch_info  info,
 		    struct gdbarch_list *arches)
@@ -1205,7 +1221,7 @@ riscv_gdbarch_init (struct gdbarch_info  info,
   set_gdbarch_breakpoint_from_pc (gdbarch, riscv_breakpoint_from_pc);
   set_gdbarch_decr_pc_after_break (gdbarch, 4);
   set_gdbarch_remote_breakpoint_from_pc (gdbarch, riscv_remote_breakpoint_from_pc);
-  set_gdbarch_print_insn (gdbarch, print_insn_riscv);
+  set_gdbarch_print_insn (gdbarch, gdb_print_insn_riscv);
 
   /* Register architecture.  */
   set_gdbarch_pseudo_register_read (gdbarch, riscv_pseudo_register_read);
