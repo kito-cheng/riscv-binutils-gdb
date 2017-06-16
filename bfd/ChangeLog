@@ -1,3 +1,8 @@
+2017-06-16  Kito Cheng  <kito.cheng@gmail.com>
+
+	* bfd/elfnn-riscv.c (_bfd_riscv_elf_merge_private_bfd_data): Support
+	RV32E.
+
 2017-05-01  Palmer Dabbelt  <palmer@dabbelt.com>
 
 	* config.bfd (riscv32-*): Enable rv64.

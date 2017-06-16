@@ -75,6 +75,7 @@ struct riscv_set_options
 {
   int pic; /* Generate position-independent code.  */
   int rvc; /* Generate RVC code.  */
+  int rve; /* Generate RVE code.  */
   int relax; /* Emit relocs the linker is allowed to relax.  */
 };
 
@@ -82,6 +83,7 @@ static struct riscv_set_options riscv_opts =
 {
   0,	/* pic */
   0,	/* rvc */
+  0,	/* rve */
   1,	/* relax */
 };
 
@@ -92,6 +94,15 @@ riscv_set_rvc (bfd_boolean rvc_value)
     elf_flags |= EF_RISCV_RVC;
 
   riscv_opts.rvc = rvc_value;
+}
+
+static void
+riscv_set_rve (bfd_boolean rve_value)
+{
+  if (rve_value)
+    elf_flags |= EF_RISCV_RVE;
+
+  riscv_opts.rve = rve_value;
 }
 
 struct riscv_subset
@@ -171,6 +182,13 @@ riscv_set_arch (const char *s)
       case 'i':
 	break;
 
+      case 'e':
+	p++;
+	riscv_add_subset ("e");
+	riscv_add_subset ("i");
+	riscv_set_rve (TRUE);
+	break;
+
       case 'g':
 	p++;
 	for ( ; *all_subsets != 'c'; all_subsets++)
@@ -181,7 +199,7 @@ riscv_set_arch (const char *s)
 	break;
 
       default:
-	as_fatal ("-march=%s: first ISA subset must be `i' or `g'", s);
+	as_fatal ("-march=%s: first ISA subset must be `e', `i' or `g'", s);
     }
 
   while (*p)
@@ -436,6 +454,10 @@ reg_lookup_internal (const char *s, enum reg_class class)
 
   if (r == NULL || DECODE_REG_CLASS (r) != class)
     return -1;
+
+  if (riscv_opts.rve && class == RCLASS_GPR && DECODE_REG_NUM (r) > 15)
+    return -1;
+
   return DECODE_REG_NUM (r);
 }
 
