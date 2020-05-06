@@ -1615,7 +1615,9 @@ static void
 my_getVsetvliExpression (expressionS *ep, char *str)
 {
   unsigned int vsew_value = 0, vlmul_value = 0, vediv_value = 0;
-  int vsew_found = FALSE, vlmul_found = FALSE, vediv_found = FALSE;
+  unsigned int vta_value = 0, vma_value = 0;
+  bfd_boolean vsew_found = FALSE, vlmul_found = FALSE, vediv_found = FALSE;
+  bfd_boolean vta_found = FALSE, vma_found = FALSE;
 
   if (arg_lookup (&str, riscv_vsew, ARRAY_SIZE (riscv_vsew), &vsew_value))
     {
@@ -1633,6 +1635,22 @@ my_getVsetvliExpression (expressionS *ep, char *str)
 	as_bad (_("multiple vlmul constants"));
       vlmul_found = TRUE;
     }
+  if (arg_lookup (&str, riscv_vta, ARRAY_SIZE (riscv_vta), &vta_value))
+    {
+      if (*str == ',')
+	++str;
+      if (vta_found)
+	as_bad (_("multiple vta constants"));
+      vta_found = TRUE;
+    }
+  if (arg_lookup (&str, riscv_vma, ARRAY_SIZE (riscv_vma), &vma_value))
+    {
+      if (*str == ',')
+	++str;
+      if (vma_found)
+	as_bad (_("multiple vma constants"));
+      vma_found = TRUE;
+    }
   if (arg_lookup (&str, riscv_vediv, ARRAY_SIZE (riscv_vediv), &vediv_value))
     {
       if (*str == ',')
@@ -1642,11 +1660,13 @@ my_getVsetvliExpression (expressionS *ep, char *str)
       vediv_found = TRUE;
     }
 
-  if (vsew_found || vlmul_found || vediv_found)
+  if (vsew_found || vlmul_found || vediv_found || vta_found || vma_found)
     {
       ep->X_op = O_constant;
       ep->X_add_number = (vediv_value << OP_SH_VEDIV)
-			 | (vsew_value << OP_SH_VSEW);
+			 | (vsew_value << OP_SH_VSEW)
+			 | (vta_value << OP_SH_VTA)
+			 | (vma_value << OP_SH_VMA) ;
       INSERT_VLMUL (ep->X_add_number, vlmul_value);
       expr_end = str;
     }
